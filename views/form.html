@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8" />
+    <title>Реєстрація на забіг</title>
+    <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        background: linear-gradient(to right, #eaf3ff, #fdfdfd);
+    }
+
+    header {
+        background-color: #0051a8;
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    nav a {
+        color: white;
+        margin-left: 20px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    nav a:hover {
+        text-decoration: underline;
+        color: #ffdd33;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 30px auto;
+        background: white;
+        padding: 30px 40px;
+        border-radius: 16px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+        color: #222;
+        margin-bottom: 25px;
+    }
+
+    label {
+        display: block;
+        margin-top: 15px;
+        font-weight: bold;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 1em;
+    }
+
+    .info {
+        margin-top: 10px;
+        color: green;
+        font-weight: bold;
+    }
+
+    button {
+        margin-top: 25px;
+        padding: 12px 20px;
+        background-color: #0051a8;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1em;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #003e85;
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" style="color: white; text-decoration: none; font-weight: bold; font-size: 1.1em;">
+        🏃 Марафонні забіги
+        </a>
+        <nav>
+        <a href="/">Головна</a>
+        <a href="/register">Взяти участь</a>
+        <a href="/participants">Результати учасників</a>
+        <a href="/about">Про автора</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>📋 Реєстрація на забіг</h1>
+        <form action="/add-participant" method="POST">
+        <label>ПІБ:
+            <input type="text" name="fullName" required>
+        </label>
+
+        <label>Дата народження:
+            <input type="date" name="birthDate" id="birthDate" required>
+        </label>
+        <div class="info" id="ageCategoryLabel"></div>
+        <input type="hidden" name="ageCategoryID" id="ageCategoryID">
+
+        <label>Стать:
+            <select name="gender" required>
+            <option value="Male">Чоловіча</option>
+            <option value="Female">Жіноча</option>
+            </select>
+        </label>
+
+        <label>Контактна інформація (email або телефон):
+            <input type="text" name="contactInfo" required>
+        </label>
+
+        <label>Пільгова категорія:
+            <select name="privilegeCategoryID" id="privilegeCategory" required>
+            <option value="1">Без пільги</option>
+            <option value="2">Учасник бойових дій</option>
+            <option value="3">Пенсіонер</option>
+            <option value="4">Особа з інвалідністю</option>
+            </select>
+        </label>
+        <div class="info" id="privilegeDiscountLabel"></div>
+
+        <label>Оберіть подію:
+            <select id="eventSelect" required></select>
+        </label>
+
+        <label>Оберіть дистанцію:
+            <select id="competitionSelect" name="competitionID" required></select>
+        </label>
+        <div class="info" id="finalPrice"></div>
+            <input type="hidden" name="finalFee" id="finalFeeInput">
+        <div class="info">🕒 Введіть, будь ласка, свої результати забігу</div>
+            <label>Час старту:
+                <input type="time" name="startTime" step="1" required>
+            </label>
+
+            <label>Час фінішу:
+                <input type="time" name="finishTime" step="1" required>
+            </label>
+
+        <button type="submit">Зареєструватись</button>
+        </form>
+    </div>
+
+<script>
+    const birthDateInput = document.getElementById('birthDate');
+    const ageCategoryIDInput = document.getElementById('ageCategoryID');
+    const ageCategoryLabel = document.getElementById('ageCategoryLabel');
+    const privilegeSelect = document.getElementById('privilegeCategory');
+    const privilegeLabel = document.getElementById('privilegeDiscountLabel');
+    const eventSelect = document.getElementById('eventSelect');
+    const competitionSelect = document.getElementById('competitionSelect');
+    const finalPriceLabel = document.getElementById('finalPrice');
+
+    const competitionsByEvent = {};
+
+    // Обробка дати народження
+    birthDateInput.addEventListener('change', () => {
+        const birthDate = new Date(birthDateInput.value);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        if (
+            today.getMonth() < birthDate.getMonth() ||
+            (today.getMonth() === birthDate.getMonth() &&
+            today.getDate() < birthDate.getDate())
+        ) {
+            age--;
+        }
+
+        let id = 1;
+        let label = '18–22 років';
+        if (age >= 23 && age <= 29) {
+            id = 2; label = '23–29 років';
+        } else if (age >= 30 && age <= 39) {
+            id = 3; label = '30–39 років';
+        } else if (age >= 40 && age <= 49) {
+            id = 4; label = '40–49 років';
+        } else if (age >= 50 && age <= 59) {
+            id = 5; label = '50–59 років';
+        } else if (age >= 60 && age <= 69) {
+            id = 6; label = '60–69 років';
+        } else if (age >= 70) {
+            id = 7; label = '70+ років';
+        }
+
+        ageCategoryIDInput.value = id;
+        ageCategoryLabel.textContent = `Вікова категорія №${id} (${label})`;
+    });
+
+    privilegeSelect.addEventListener('change', () => {
+        const value = privilegeSelect.value;
+        if (value === "1") {
+            privilegeLabel.textContent = "Знижка: 0%";
+        } else {
+            privilegeLabel.textContent = "Знижка: 30%";
+        }
+        updateFinalPrice();
+    });
+
+    competitionSelect.addEventListener('change', updateFinalPrice);
+
+    function updateFinalPrice() {
+        const selected = competitionSelect.selectedOptions[0];
+        if (!selected) return;
+        const basePrice = parseFloat(selected.dataset.price);
+        const discount = privilegeSelect.value !== "1" ? 0.3 : 0;
+        const final = basePrice * (1 - discount);
+        finalPriceLabel.textContent = `До сплати: ${final.toFixed(2)} грн`;
+        document.getElementById('finalFeeInput').value = final.toFixed(2);
+    }
+
+    // Завантаження подій + дистанцій
+    fetch('/api/events')
+        .then(res => res.json())
+        .then(events => {
+            eventSelect.innerHTML = '';
+            events.forEach(event => {
+            const option = document.createElement('option');
+            option.value = event.eventID;
+            option.textContent = `${event.name} (${new Date(event.date).toLocaleDateString()})`;
+            competitionsByEvent[event.eventID] = event.competitions;
+            eventSelect.appendChild(option);
+            });
+
+            eventSelect.dispatchEvent(new Event('change'));
+      });
+
+    eventSelect.addEventListener('change', () => {
+        const selectedID = eventSelect.value;
+        const competitions = competitionsByEvent[selectedID] || [];
+        competitionSelect.innerHTML = '';
+
+        competitions.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.id;
+            option.textContent = `${c.name} — ${c.price} грн`;
+            option.dataset.price = c.price;
+            competitionSelect.appendChild(option);
+      });
+
+        updateFinalPrice();
+    });
+</script>
+</body>
+</html>

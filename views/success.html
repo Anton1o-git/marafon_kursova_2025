@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8" />
+    <title>Реєстрація успішна</title>
+    <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        background: linear-gradient(to right, #eaf3ff, #fdfdfd);
+    }
+
+    header {
+        background-color: #0051a8;
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    nav a {
+        color: white;
+        margin-left: 20px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    nav a:hover {
+        text-decoration: underline;
+        color: #ffdd33;
+    }
+
+    .container {
+        max-width: 700px;
+        margin: 50px auto;
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+
+    h1 {
+        color: #228833;
+        font-size: 2em;
+    }
+
+    p {
+        font-size: 1.2em;
+        margin: 20px 0;
+    }
+
+    a.button {
+        display: inline-block;
+        padding: 12px 20px;
+        margin-top: 20px;
+        background-color: #0051a8;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    a.button:hover {
+        background-color: #003e85;
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" style="color: white; text-decoration: none; font-weight: bold; font-size: 1.1em;">
+        🏃 Марафонні забіги
+        </a>
+        <nav>
+        <a href="/">Головна</a>
+        <a href="/register">Взяти участь</a>
+        <a href="/participants">Результати учасників</a>
+        <a href="/about">Про автора</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>✅ Реєстрація успішна!</h2>
+        <p>Ваш стартовий номер: <strong>{{BIB}}</strong></p>
+
+        <p style="margin-top: 20px;">Свої результати Ви можете передивитись <a href="/participants">ось тут</a>!</p>
+
+        <a class="button" href="/register">Зареєструватись ще</a>
+        <a class="button" href="/">На головну</a>
+    </div>
+</body>
+</html>

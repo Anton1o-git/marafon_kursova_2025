@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8" />
+    <title>Про автора</title>
+    <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        background: linear-gradient(to right, #f0f4ff, #fdfdfd);
+    }
+
+    header {
+        background-color: #0051a8;
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    nav a {
+        color: white;
+        margin-left: 20px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    nav a:hover {
+        text-decoration: underline;
+        color: #ffdd33;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 50px auto;
+        background: white;
+        padding: 40px 50px;
+        border-radius: 16px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    h1 {
+        color: #0051a8;
+        font-size: 2em;
+        margin-bottom: 20px;
+    }
+
+    p {
+        font-size: 1.1em;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    footer {
+        text-align: center;
+        font-size: 0.9em;
+        padding: 20px;
+        color: #555;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" style="color: white; text-decoration: none; font-weight: bold; font-size: 1.1em;">
+        🏃 Марафонні забіги
+        </a>
+        <nav>
+            <a href="/">Головна</a>
+            <a href="/register">Взяти участь</a>
+            <a href="/participants">Результати учасників</a>
+            <a href="/about">Про автора</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>👤 Про автора</h1>
+        <p>
+            Цю курсову роботу виконано у <strong>2025 році</strong> в рамках навчальної дисципліни <strong>«Бази даних»</strong>.
+        </p>
+        <p>
+            Тема курсової роботи: <strong>«Марафон»</strong>.
+        </p>
+        <p>
+            Автор: <strong>Лихоліт Антон Ілліч</strong> — студент <strong>2 курсу</strong> факультету <strong>ФІОТ</strong>, група <strong>ІС-33</strong>, 
+            <br>Національного технічного університету України «Київський політехнічний інститут імені Ігоря Сікорського».
+        </p>
+        <p>
+            У рамках цієї роботи було реалізовано повноцінну вебсистему з базою даних MS SQL Server, реєстрацією учасників марафону, обліком подій, дистанцій, результатів, обчисленням категорій, знижок та інтерактивним інтерфейсом для керування учасниками.
+        </p>
+    </div>
+
+    <footer>
+        &copy; 2025 Система управління марафонами | Розробив Антон Лихоліт
+    </footer>
+</body>
+</html>
