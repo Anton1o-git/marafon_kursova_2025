@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8" />
+    <title>Результати учасників</title>
+    <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        background: #f8f9fb;
+    }
+
+    header {
+        background-color: #0051a8;
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    nav a {
+        color: white;
+        margin-left: 20px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    nav a:hover {
+            text-decoration: underline;
+            color: #ffdd33;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        background: white;
+        padding: 30px 40px;
+        border-radius: 16px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+        color: #222;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .controls {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    select, input[type="text"] {
+        padding: 10px;
+        font-size: 1em;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95em;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #0051a8;
+        color: white;
+        cursor: pointer;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .error {
+        color: red;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .edit-panel {
+        display: none;
+        position: fixed;
+        top: 10%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 500px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        padding: 30px;
+        z-index: 10;
+    }
+
+    .edit-panel.active {
+        display: block;
+    }
+
+    .edit-panel input, .edit-panel select {
+        width: 100%;
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    .edit-panel h3 {
+        margin-top: 0;
+        text-align: center;
+    }
+
+    .edit-panel button {
+        margin-right: 10px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .save-btn {
+        background-color: #0051a8;
+        color: white;
+    }
+
+    .delete-btn {
+        background-color: crimson;
+        color: white;
+    }
+
+    .cancel-btn {
+        background-color: #ccc;
+    }
+
+    .overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 5;
+    }
+
+    .overlay.active {
+        display: block;
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" style="color: white; text-decoration: none; font-weight: bold; font-size: 1.1em;">
+        🏃 Марафонні забіги
+        </a>
+        <nav>
+        <a href="/">Головна</a>
+        <a href="/register">Взяти участь</a>
+        <a href="/participants">Результати учасників</a>
+        <a href="/event-admin">Керування подіями</a>
+        <a href="/about">Про автора</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>📊 Результати учасників</h1>
+        <div class="controls">
+        <select id="eventFilter"><option value="">Усі події</option></select>
+        <input type="text" id="searchInput" placeholder="Пошук за ПІБ..." />
+        </div>
+        <div id="error" class="error"></div>
+        <table id="resultsTable">
+        <thead>
+            <tr>
+            <th data-sort="BibNumber">Стартовий №</th>
+            <th data-sort="FullName">ПІБ</th>
+            <th data-sort="Gender">Стать</th>
+            <th data-sort="AgeCategory">Вік</th>
+            <th data-sort="PrivilegeCategory">Пільга</th>
+            <th data-sort="EventName">Подія</th>
+            <th data-sort="EventDate">Дата</th>
+            <th data-sort="CompetitionName">Дистанція</th>
+            <th data-sort="StartTime">Час старту</th>
+            <th data-sort="FinishTime">Час фінішу</th>
+            <th data-sort="NetTimeSeconds">Результат</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        </table>
+    </div>
+  <!-- Модальне вікно редагування -->
+    <div class="overlay" id="overlay"></div>
+    <div class="edit-panel" id="editPanel">
+        <h3>Редагування учасника</h3>
+        <input type="hidden" id="editId">
+        <input type="text" id="editFullName" placeholder="ПІБ">
+        <input type="text" id="editGender" placeholder="Стать (Male/Female)">
+        <input type="text" id="editContact" placeholder="Контакт">
+        <input type="time" id="editStartTime" step="1">
+        <input type="time" id="editFinishTime" step="1">
+        <div style="text-align:center;">
+        <button class="save-btn" onclick="saveChanges()">💾 Зберегти</button>
+        <button class="delete-btn" onclick="deleteParticipant()">🗑️ Видалити</button>
+        <button class="cancel-btn" onclick="closePanel()">❌ Скасувати</button>
+        </div>
+    </div>
+
+    <script>
+    let data = [];
+    let currentEvent = '';
+    let sortKey = null;
+    let sortAsc = true;
+
+    const tbody = document.querySelector('#resultsTable tbody');
+    const eventFilter = document.getElementById('eventFilter');
+    const searchInput = document.getElementById('searchInput');
+
+    // Завантажити всі події
+    fetch('/api/events')
+      .then(res => res.json())
+      .then(events => {
+        events.forEach(event => {
+          const opt = document.createElement('option');
+          opt.value = event.eventID;
+          opt.textContent = `${event.name} (${new Date(event.date).toLocaleDateString()})`;
+          eventFilter.appendChild(opt);
+        });
+      });
+
+    function fetchParticipants() {
+      let url = '/api/participants';
+      if (currentEvent) url += `?eventID=${currentEvent}`;
+      fetch(url)
+        .then(res => res.json())
+        .then(json => {
+          data = json;
+          applyFilters();
+        })
+        .catch(err => {
+          document.getElementById('error').textContent = '❌ Помилка завантаження: ' + err.message;
+        });
+    }
+
+    function applyFilters() {
+        let filtered = [...data];
+        const search = searchInput.value.toLowerCase();
+
+        if (search) {
+            filtered = filtered.filter(p => p.FullName.toLowerCase().includes(search));
+        }
+
+        if (sortKey) {
+            filtered.sort((a, b) => {
+            const valA = a[sortKey];
+            const valB = b[sortKey];
+            if (valA < valB) return sortAsc ? -1 : 1;
+            if (valA > valB) return sortAsc ? 1 : -1;
+            return 0;
+            });
+        }
+
+        renderTable(filtered);
+    }
+
+function renderTable(rows) {
+    tbody.innerHTML = '';
+    rows.forEach(p => {
+        const start = p.StartTime?.substring(11, 19) ?? '-';
+        const finish = p.FinishTime?.substring(11, 19) ?? '-';
+        const netTime = new Date(p.NetTimeSeconds * 1000).toISOString().substr(11, 8);
+
+        const tr = document.createElement('tr');
+        tr.dataset.id = p.RegistrationID;
+        tr.innerHTML = `
+        <td>${p.BibNumber ?? '-'}</td>
+        <td>${p.FullName}</td>
+        <td>${p.Gender === 'Male' ? 'Чол.' : 'Жін.'}</td>
+        <td>${p.AgeCategory}</td>
+        <td>${p.PrivilegeCategory}</td>
+        <td>${p.EventName}</td>
+        <td>${new Date(p.EventDate).toLocaleDateString()}</td>
+        <td>${p.CompetitionName}</td>
+        <td>${start}</td>
+        <td>${finish}</td>
+        <td>${netTime}</td>
+        `;
+        tr.addEventListener('click', () => openPanel(p));
+        tbody.appendChild(tr);
+    });
+}
+
+    function openPanel(p) {
+        document.getElementById('editId').value = p.RegistrationID;
+        document.getElementById('editFullName').value = p.FullName;
+        document.getElementById('editGender').value = p.Gender;
+        document.getElementById('editContact').value = p.ContactInfo ?? '';
+        document.getElementById('editStartTime').value = p.StartTime?.substring(11, 19);
+        document.getElementById('editFinishTime').value = p.FinishTime?.substring(11, 19);
+        document.getElementById('overlay').classList.add('active');
+        document.getElementById('editPanel').classList.add('active');
+    }
+
+    function closePanel() {
+        document.getElementById('overlay').classList.remove('active');
+        document.getElementById('editPanel').classList.remove('active');
+    }
+
+    function saveChanges() {
+        const id = document.getElementById('editId').value;
+        const payload = {
+            BibNumber: id,
+            FullName: document.getElementById('editFullName').value,
+            Gender: document.getElementById('editGender').value,
+            ContactInfo: document.getElementById('editContact').value,
+            StartTime: document.getElementById('editStartTime').value,
+            FinishTime: document.getElementById('editFinishTime').value,
+        };
+
+        fetch(`/api/participants/${id}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        }).then(() => {
+            closePanel();
+            fetchParticipants();
+        });
+    }
+
+    function deleteParticipant() {
+        const id = document.getElementById('editId').value;
+        if (!confirm('Ви дійсно хочете видалити цього учасника?')) return;
+        fetch(`/api/participants/${id}`, {
+            method: 'DELETE'
+        }).then(() => {
+            closePanel();
+            fetchParticipants();
+    });
+    }
+
+    eventFilter.addEventListener('change', e => {
+        currentEvent = e.target.value;
+        fetchParticipants();
+    });
+
+    searchInput.addEventListener('input', applyFilters);
+
+    document.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const key = th.dataset.sort;
+            sortAsc = sortKey === key ? !sortAsc : true;
+            sortKey = key;
+            applyFilters();
+        });
+    });
+
+        fetchParticipants();
+    </script>
+</body>
+</html>

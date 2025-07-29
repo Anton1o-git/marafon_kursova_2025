@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8" />
+    <title>Керування подіями</title>
+    <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        background: #f8f9fb;
+    }
+
+    header {
+        background-color: #0051a8;
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    nav a {
+        color: white;
+        margin-left: 20px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+        
+    nav a:hover {
+            text-decoration: underline;
+            color: #ffdd33;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 30px auto;
+        background: white;
+        padding: 30px 40px;
+        border-radius: 16px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+        color: #222;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .event-box {
+        border: 1px solid #ccc;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .event-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        font-size: 1.1em;
+        cursor: pointer;
+        color: #0051a8;
+    }
+
+    .distance-list {
+        margin-top: 10px;
+        padding-left: 20px;
+    }
+
+    .add-btn {
+        padding: 10px 20px;
+        background-color: #0051a8;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+
+    .modal, .overlay {
+        display: none;
+        position: fixed;
+        z-index: 10;
+        top: 0; left: 0; width: 100%; height: 100%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .overlay.active {
+        display: block;
+        background: rgba(0,0,0,0.5);
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        width: 400px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    .modal-content input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    .modal-content button {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+
+    .save-btn {
+        background-color: #0051a8;
+        color: white;
+    }
+
+    .delete-btn {
+        background-color: crimson;
+        color: white;
+    }
+
+    .cancel-btn {
+        background-color: #ccc;
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" style="color: white; text-decoration: none; font-weight: bold;">🏃 Марафонні забіги</a>
+        <nav>
+            <a href="/">Головна</a>
+            <a href="/register">Взяти участь</a>
+            <a href="/participants">Результати учасників</a>
+            <a href="/event-admin">Керування подіями</a>
+            <a href="/about">Про автора</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>📅 Управління подіями та дистанціями</h1>
+        <button class="add-btn" onclick="openModal()">➕ Додати подію</button>
+        <div id="eventsContainer">Завантаження...</div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="modal" id="eventModal">
+        <div class="modal-content">
+        <h3>Подія</h3>
+        <input type="hidden" id="eventID">
+        <input type="text" id="eventName" placeholder="Назва події">
+        <input type="text" id="eventLocation" placeholder="Локація">
+        <input type="date" id="eventDate">
+        <div style="text-align: center;">
+            <button class="save-btn" onclick="saveEvent()">💾 Зберегти</button>
+            <button class="delete-btn" onclick="deleteEvent()">🗑️ Видалити</button>
+            <button class="cancel-btn" onclick="closeModal()">❌ Скасувати</button>
+        </div>
+        </div>
+    </div>
+    <div class="modal" id="competitionModal">
+    <div class="modal-content">
+        <h3>Дистанція</h3>
+        <input type="hidden" id="competitionID">
+        <input type="text" id="competitionName" placeholder="Назва дистанції">
+        <input type="number" id="competitionPrice" placeholder="Ціна">
+        <div style="text-align: center;">
+        <button class="save-btn" onclick="saveCompetition()">💾 Зберегти</button>
+        <button class="delete-btn" onclick="deleteCompetition()">🗑️ Видалити</button>
+        <button class="cancel-btn" onclick="closeCompetitionModal()">❌ Скасувати</button>
+        </div>
+    </div>
+    </div>
+<script>
+    let events = [];
+
+    function loadEvents() {
+        fetch('/api/events')
+            .then(res => res.json())
+            .then(data => {
+                console.log('Завантажені події:', data);
+                events = data;
+                renderEvents();
+            });
+        }
+        function addCompetition(eventID, btn) {
+        const container = btn.parentElement;
+        const name = container.querySelector('[data-name]').value;
+        const distance = container.querySelector('[data-distance]').value;
+        const price = container.querySelector('[data-price]').value;
+
+        fetch('/api/competitions', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ name, distance, price, eventID })
+        }).then(() => loadEvents());
+    }
+
+    function openCompetitionModal(comp) {
+        document.getElementById('overlay').classList.add('active');
+        document.getElementById('competitionModal').classList.add('active');
+        document.getElementById('competitionID').value = comp.id;
+        document.getElementById('competitionName').value = comp.name;
+        document.getElementById('competitionPrice').value = comp.price;
+    }
+
+    function closeCompetitionModal() {
+        document.getElementById('overlay').classList.remove('active');
+        document.getElementById('competitionModal').classList.remove('active');
+    }
+
+    function saveCompetition() {
+        const id = document.getElementById('competitionID').value;
+        const name = document.getElementById('competitionName').value;
+        const price = document.getElementById('competitionPrice').value;
+
+        fetch(`/api/competitions/${id}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ name, price })
+        }).then(() => {
+            closeCompetitionModal();
+            loadEvents();
+        });
+    }
+
+    function deleteCompetition() {
+        const id = document.getElementById('competitionID').value;
+        if (!confirm('Ви дійсно хочете видалити дистанцію?')) return;
+
+        fetch(`/api/competitions/${id}`, {
+            method: 'DELETE'
+        }).then(() => {
+            closeCompetitionModal();
+            loadEvents();
+        });
+    }
+
+    function renderEvents() {
+        const container = document.getElementById('eventsContainer');
+        container.innerHTML = '';
+
+        events.forEach(event => {
+            const box = document.createElement('div');
+            box.className = 'event-box';
+
+            const header = document.createElement('div');
+            header.className = 'event-header';
+            header.textContent = `${event.name} (${new Date(event.date).toLocaleDateString()})`;
+            header.onclick = () => openModal(event);
+
+            const list = document.createElement('ul');
+            list.className = 'distance-list';
+            if (event.competitions.length === 0) {
+            list.innerHTML = '<li>Немає дистанцій</li>';
+            } else {
+                event.competitions.forEach(c => {
+                    const li = document.createElement('li');
+                    li.textContent = `${c.name} — ${c.price} грн`;
+
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = '✏️';
+                    editBtn.style.marginLeft = '10px';
+                    editBtn.onclick = () => openCompetitionModal(c);
+
+                    li.appendChild(editBtn);
+                    list.appendChild(li);
+                });
+            }
+
+        box.appendChild(header);
+        box.appendChild(list);
+
+        const form = document.createElement('div');
+        form.style.marginTop = '15px';
+        form.style.padding = '15px';
+        form.style.border = '1px dashed #ccc';
+        form.style.borderRadius = '10px';
+        form.style.backgroundColor = '#f4f8ff';
+
+        form.innerHTML = `
+        <h4 style="margin-top: 0;">➕ Додати дистанцію</h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            <input type="text" placeholder="Назва дистанції" data-name style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ccc;" />
+            <input type="number" placeholder="Довжина (км)" step="0.01" data-distance style="width: 130px; padding: 10px; border-radius: 8px; border: 1px solid #ccc;" />
+            <input type="number" placeholder="Ціна (грн)" step="0.01" data-price style="width: 130px; padding: 10px; border-radius: 8px; border: 1px solid #ccc;" />
+            <button onclick="addCompetition(${event.eventID}, this)" style="padding: 10px 20px; border: none; background-color: #0051a8; color: white; border-radius: 8px; font-weight: bold; cursor: pointer;">Додати</button>
+        </div>
+        `;
+        box.appendChild(form);
+
+        container.appendChild(box);
+        });
+    }
+
+    function openModal(event = null) {
+        document.getElementById('overlay').classList.add('active');
+        document.getElementById('eventModal').classList.add('active');
+        if (event) {
+            document.getElementById('eventID').value = event.eventID;
+            document.getElementById('eventName').value = event.name;
+            document.getElementById('eventLocation').value = event.location;
+            document.getElementById('eventDate').value = event.date.split('T')[0];
+        } else {
+            document.getElementById('eventID').value = '';
+            document.getElementById('eventName').value = '';
+            document.getElementById('eventLocation').value = '';
+            document.getElementById('eventDate').value = '';
+        }
+    }
+
+    function closeModal() {
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('eventModal').classList.remove('active');
+    }
+
+    function saveEvent() {
+        const id = document.getElementById('eventID').value;
+        const payload = {
+            name: document.getElementById('eventName').value,
+            location: document.getElementById('eventLocation').value,
+            date: document.getElementById('eventDate').value
+        };
+
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `/api/events/${id}` : '/api/events';
+
+        fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(() => {
+            closeModal();
+            loadEvents();
+        });
+    }
+
+    function deleteEvent() {
+        const id = document.getElementById('eventID').value;
+        if (!id || !confirm('Ви дійсно хочете видалити подію?')) return;
+
+        fetch(`/api/events/${id}`, {
+            method: 'DELETE'
+        }).then(() => {
+            closeModal();
+            loadEvents();
+        });
+    }
+
+    loadEvents();
+</script>
+</body>
+</html>

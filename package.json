@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "express": "^5.1.0",
+    "msnodesqlv8": "^4.5.0",
+    "mssql": "^11.0.1"
+  }
+}
